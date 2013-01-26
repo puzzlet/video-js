@@ -55,6 +55,9 @@ vjs.Player = function(tag, options, ready){
 
   // Make player easily findable by ID
   vjs.players[this.id_] = this;
+
+  // System message
+  this.message = '';
 };
 goog.inherits(vjs.Player, vjs.Component);
 

@@ -497,3 +497,6 @@ div.vjs-loading-spinner .ball8 { opacity: 1.00; position:absolute; left: 6px; to
 .vjs-default-skin .vjs-captions-button div { background-position: -25px -75px; }
 .vjs-default-skin .vjs-chapters-button div { background-position: -100px -75px; }
 .vjs-default-skin .vjs-chapters-button ul { width: 20em; left: -8.5em; /* Width of menu - width of button / 2 */ }
+
+/* System Message */
+.vjs-system-message { text-align: left; padding: 1em; color: #777; font-size: 2em; line-height: 1; font-weight: normal; font-family: Helvetica, Arial, sans-serif; text-shadow: black -2px 0px 1px, black 2px 0px 1px, black 0px -2px 1px, black 0px 2px 1px, black -1px 1px 1px, black 1px 1px 1px, black 1px -1px 1px, black 1px 1px 1px, black -3px 0px 1px, black 3px 0px 1px, black 0px -3px 1px, black 0px 3px 1px, black -2px 2px 1px, black -2px -2px 1px, black 2px -2px 1px, black 2px 2px 1px; }

@@ -1010,3 +1010,32 @@ vjs.MenuItem.prototype.selected = function(selected){
     this.removeClass('vjs-selected');
   }
 };
+
+/**
+ * System message display
+ * @param {vjs.Player|Object} player
+ * @param {Object=} options
+ * @constructor
+ */
+vjs.SystemMessageDisplay = function(player,options){
+  goog.base(this, player, options);
+
+  player.on('timeupdate', vjs.bind(this, this.updateContent));
+};
+goog.inherits(vjs.SystemMessageDisplay, vjs.Control);
+
+vjs.SystemMessageDisplay.prototype.createEl = function(type, props){
+  return goog.base(this, 'createEl', 'div', vjs.obj.merge({
+    className: 'vjs-system-message vjs-fade-out'
+  }, props));
+};
+
+vjs.SystemMessageDisplay.prototype.updateContent = function(){
+  if (this.el_.innerHTML === this.player_.message)
+    this.fadeOut();
+  else
+  {
+    this.el_.innerHTML = this.player_.message;
+    vjs.removeClass(this.el_, 'vjs-fade-out');
+  }
+};
