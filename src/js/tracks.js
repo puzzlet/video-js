@@ -86,6 +86,18 @@ vjs.Player.prototype.addTextTracks = function(trackList){
   return this;
 };
 
+/**
+ * Same as addTextTrack, but replaces current tracks
+ * @param {Array} trackList Array of track elements or objects (fake track elements)
+ */
+vjs.Player.prototype.replaceTextTracks = function(trackList){
+  this.textTracks_ = [];
+  this.addTextTracks(trackList);
+  var el = this.player_.getChild('controlBar').getChild('subtitlesButton');
+  el.updateMenu();
+  return this;
+};
+
 // Show a text track
 // disableSameKind: disable all other tracks of the same kind. Value should be a track kind (captions, etc.)
 vjs.Player.prototype.showTextTrack = function(id, disableSameKind){
@@ -794,6 +806,35 @@ vjs.TextTrackButton = function(player, options){
 };
 goog.inherits(vjs.TextTrackButton, vjs.Button);
 
+vjs.TextTrackButton.prototype.updateMenu = function(menu){
+  var i;
+
+  if (menu === undefined) {
+    menu = this.menu;
+  }
+
+  if (this.items) {
+    for (i = 0; i < this.items.length; i++) {
+      menu.removeItem(this.items[i]);
+    }
+  }
+
+  this.items = this.createItems();
+
+  if (this.items.length === 0) {
+    this.hide();
+  }
+  else {
+    // Add menu items to the menu
+    for (i = 0; i < this.items.length; i++) {
+      menu.addItem(this.items[i]);
+    }
+    this.show();
+  }
+
+  return menu;
+};
+
 vjs.TextTrackButton.prototype.createMenu = function(){
   var menu = new vjs.Menu(this.player_);
 
@@ -806,12 +847,7 @@ vjs.TextTrackButton.prototype.createMenu = function(){
   // Add an OFF menu item to turn all tracks off
   menu.addItem(new vjs.OffTextTrackMenuItem(this.player_, { 'kind': this.kind_ }));
 
-  this.items = this.createItems();
-
-  // Add menu items to the menu
-  for (var i = 0; i < this.items.length; i++) {
-    menu.addItem(this.items[i]);
-  }
+  menu = this.updateMenu(menu);
 
   // Add list to element
   this.addChild(menu);

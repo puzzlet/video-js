@@ -967,6 +967,10 @@ vjs.Menu.prototype.addItem = function(component){
   }));
 };
 
+vjs.Menu.prototype.removeItem = function(component){
+  this.removeChild(component);
+};
+
 vjs.Menu.prototype.createEl = function(){
   return goog.base(this, 'createEl', 'ul', {
     className: 'vjs-menu'
