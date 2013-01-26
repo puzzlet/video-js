@@ -155,6 +155,9 @@ vjs.TextTrack = function(player, options){
   this.activeCues_ = [];
   this.readyState_ = 0;
   this.mode_ = 0;
+  this.syncOffset_ = 0;
+
+  vjs.on(document, 'keyup', vjs.bind(this, this.onKeyPress));
 };
 goog.inherits(vjs.TextTrack, vjs.Component);
 
@@ -541,7 +544,7 @@ vjs.TextTrack.prototype.update = function(){
   if (this.cues_.length > 0) {
 
     // Get curent player time
-    var time = this.player_.currentTime();
+    var time = this.player_.currentTime() - this.syncOffset_;
 
     // Check if the new time is outside the time box created by the the last update.
     if (this.prevChange === undefined || time < this.prevChange || this.nextChange <= time) {
@@ -663,6 +666,21 @@ vjs.TextTrack.prototype.reset = function(){
   this.prevChange = this.player_.duration();
   this.firstActiveIndex = 0;
   this.lastActiveIndex = 0;
+};
+
+// KeyPress
+vjs.TextTrack.prototype.onKeyPress = function(event){
+  switch (event.which) {
+    case 219: // '['
+      this.syncOffset_ -= 0.5;
+      break;
+    case 221: // ']'
+      this.syncOffset_ += 0.5;
+      break;
+  }
+  this.player_.message = 'Track sync: ' + this.syncOffset_ +
+    (Math.abs(this.syncOffset) > 1 ? ' seconds' : ' second');
+  return;
 };
 
 // Create specific track types
