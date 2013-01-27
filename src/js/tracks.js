@@ -58,9 +58,9 @@ vjs.Player.prototype.addTextTrack = function(kind, label, language, options){
   // TODO: Add a process to deterime the best track to show for the specific kind
   // Incase there are mulitple defaulted tracks of the same kind
   // Or the user has a set preference of a specific language that should override the default
-  // if (track.dflt()) {
-  //   this.ready(vjs.bind(track, track.show));
-  // }
+  if (track.dflt()) {
+    this.ready(vjs.bind(track, track.show));
+  }
 
   return track;
 };
