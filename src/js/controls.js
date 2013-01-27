@@ -36,7 +36,7 @@ vjs.ControlBar = function(player, options){
 
   player.one('play', vjs.bind(this, function(){
     this.fadeIn();
-    this.player_.on('mouseover', vjs.bind(this, this.fadeIn));
+    this.player_.on('mousemove', vjs.bind(this, this.onMouseMove));
     this.player_.on('mouseout', vjs.bind(this, this.fadeOut));
   }));
 };
@@ -61,6 +61,12 @@ vjs.ControlBar.prototype.createEl = function(){
   return vjs.createEl('div', {
     className: 'vjs-control-bar'
   });
+};
+
+vjs.ControlBar.prototype.onMouseMove = function(){
+  this.fadeIn();
+  clearInterval(this.mouseMoveTimeout_);
+  this.mouseMoveTimeout_ = setTimeout(vjs.bind(this, this.fadeOut), 4000);
 };
 
 vjs.ControlBar.prototype.fadeIn = function(){
