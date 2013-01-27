@@ -748,6 +748,7 @@ vjs.OffTextTrackMenuItem = function(player, options){
   // Create pseudo track info
   // Requires options['kind']
   options['track'] = {
+    id: function(){ return -1; },
     kind: function() { return options['kind']; },
     player: player,
     label: function(){ return 'Off'; },
@@ -757,11 +758,6 @@ vjs.OffTextTrackMenuItem = function(player, options){
   goog.base(this, player, options);
 };
 goog.inherits(vjs.OffTextTrackMenuItem, vjs.TextTrackMenuItem);
-
-vjs.OffTextTrackMenuItem.prototype.onClick = function(){
-  goog.base(this, 'onClick');
-  this.player_.showTextTrack(this.track.id(), this.track.kind());
-};
 
 vjs.OffTextTrackMenuItem.prototype.update = function(){
   var tracks = this.player_.textTracks(),
