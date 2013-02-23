@@ -7,13 +7,6 @@
  * Descriptions (not supported yet) - audio descriptions that are read back to the user by a screen reading device
  */
 
-goog.provide('vjs.TextTrack');
-
-goog.require('vjs.Menu');
-goog.require('vjs.MenuItem');
-goog.require('vjs.Component');
-
-
 // Player Additions - Functions add to the player object for easier access to tracks
 
 /**
@@ -158,6 +151,8 @@ vjs.TextTrack = function(player, options){
   this.syncOffset_ = 0;
 
   vjs.on(document, 'keyup', vjs.bind(this, this.onKeyPress));
+
+  this.player_.on('fullscreenchange', vjs.bind(this, this.adjustFontSize));
 };
 goog.inherits(vjs.TextTrack, vjs.Component);
 
@@ -314,6 +309,22 @@ vjs.TextTrack.prototype.mode_;
  */
 vjs.TextTrack.prototype.mode = function(){
   return this.mode_;
+};
+
+/**
+ * Change the font size of the text track to make it larger when playing in fullscreen mode
+ * and restore it to its normal size when not in fullscreen mode.
+ */
+vjs.TextTrack.prototype.adjustFontSize = function(){
+    if (this.player_.isFullScreen) {
+        // Scale the font by the same factor as increasing the video width to the full screen window width.
+        // Additionally, multiply that factor by 1.4, which is the default font size for
+        // the caption track (from the CSS)
+        this.el_.style.fontSize = screen.width / this.player_.width() * 1.4 * 100 + '%';
+    } else {
+        // Change the font size of the text track back to its original non-fullscreen size
+        this.el_.style.fontSize = '';
+    }
 };
 
 /**
@@ -760,7 +771,7 @@ goog.inherits(vjs.TextTrackMenuItem, vjs.MenuItem);
 
 vjs.TextTrackMenuItem.prototype.onClick = function(){
   goog.base(this, 'onClick');
-  this.player_.showTextTrack(this.track.id(), this.track.kind());
+  this.player_.showTextTrack(this.track.id_, this.track.kind());
 };
 
 vjs.TextTrackMenuItem.prototype.update = function(){
@@ -788,6 +799,11 @@ vjs.OffTextTrackMenuItem = function(player, options){
   goog.base(this, player, options);
 };
 goog.inherits(vjs.OffTextTrackMenuItem, vjs.TextTrackMenuItem);
+
+vjs.OffTextTrackMenuItem.prototype.onClick = function(){
+  goog.base(this, 'onClick');
+  this.player_.showTextTrack(this.track.id_, this.track.kind());
+};
 
 vjs.OffTextTrackMenuItem.prototype.update = function(){
   var tracks = this.player_.textTracks(),
@@ -821,8 +837,13 @@ vjs.TextTrackButton = function(player, options){
   if (this.items.length === 0) {
     this.hide();
   }
+  this.on('keyup', this.onKeyPress);
+  this.el_.setAttribute('aria-haspopup',true);
+  this.el_.setAttribute('role','button');
 };
 goog.inherits(vjs.TextTrackButton, vjs.Button);
+
+vjs.TextTrackButton.prototype.buttonPressed = false;
 
 vjs.TextTrackButton.prototype.updateMenu = function(menu){
   var i;
@@ -859,7 +880,8 @@ vjs.TextTrackButton.prototype.createMenu = function(){
   // Add a title list item to the top
   menu.el().appendChild(vjs.createEl('li', {
     className: 'vjs-menu-title',
-    innerHTML: vjs.capitalize(this.kind_)
+    innerHTML: vjs.capitalize(this.kind_),
+    tabindex: -1
   }));
 
   // Add an OFF menu item to turn all tracks off
@@ -895,6 +917,11 @@ vjs.TextTrackButton.prototype.buildCSSClass = function(){
 
 // Focus - Add keyboard functionality to element
 vjs.TextTrackButton.prototype.onFocus = function(){
+  // This function is not needed anymore. Instead, the keyboard functionality is handled by
+  // treating the button as triggering a submenu. When the button is pressed, the submenu
+  // appears. Pressing the button again makes the submenu disappear.
+
+  /*
   // Show the menu, and keep showing when the menu items are in focus
   this.menu.lockShowing();
   // this.menu.el_.style.display = 'block';
@@ -903,6 +930,7 @@ vjs.TextTrackButton.prototype.onFocus = function(){
   vjs.one(this.menu.el_.childNodes[this.menu.el_.childNodes.length - 1], 'blur', vjs.bind(this, function(){
     this.menu.unlockShowing();
   }));
+    */
 };
 // Can't turn off list display that we turned on with focus, because list would go away.
 vjs.TextTrackButton.prototype.onBlur = function(){};
@@ -915,13 +943,51 @@ vjs.TextTrackButton.prototype.onClick = function(){
     this.menu.unlockShowing();
     this.el_.blur();
   }));
+  if (this.buttonPressed){
+      this.unpressButton();
+  } else {
+      this.pressButton();
+  }
 };
 
+vjs.TextTrackButton.prototype.onKeyPress = function(event){
+  // Check for space bar (32) or enter (13) keys
+  if (event.which == 32 || event.which == 13) {
+      event.preventDefault();
+      if (this.buttonPressed){
+          this.unpressButton();
+      } else {
+          this.pressButton();
+      }
+  }
+
+  // Check for escape (27) key
+  if (event.which == 27){
+      event.preventDefault();
+      if (this.buttonPressed){
+          this.unpressButton();
+      }
+  }
+};
+
+vjs.TextTrackButton.prototype.pressButton = function(){
+    this.buttonPressed = true;
+    this.menu.lockShowing();
+    this.el_.setAttribute('aria-pressed',true);
+    this.el_.children[1].children[0].focus(); // set the focus to the title of the submenu
+};
+
+vjs.TextTrackButton.prototype.unpressButton = function(){
+    this.buttonPressed = false;
+    this.menu.unlockShowing();
+    this.el_.setAttribute('aria-pressed',false);
+};
 /**
  * @constructor
  */
 vjs.CaptionsButton = function(player, options, ready){
   goog.base(this, player, options, ready);
+  this.el_.setAttribute('aria-label','Captions Menu');
 };
 goog.inherits(vjs.CaptionsButton, vjs.TextTrackButton);
 vjs.CaptionsButton.prototype.kind_ = 'captions';
@@ -933,6 +999,7 @@ vjs.CaptionsButton.prototype.className = 'vjs-captions-button';
  */
 vjs.SubtitlesButton = function(player, options, ready){
   goog.base(this, player, options, ready);
+  this.el_.setAttribute('aria-label','Subtitles Menu');
 };
 goog.inherits(vjs.SubtitlesButton, vjs.TextTrackButton);
 vjs.SubtitlesButton.prototype.kind_ = 'subtitles';
@@ -946,6 +1013,7 @@ vjs.SubtitlesButton.prototype.className = 'vjs-subtitles-button';
  */
 vjs.ChaptersButton = function(player, options, ready){
   goog.base(this, player, options, ready);
+  this.el_.setAttribute('aria-label','Chapters Menu');
 };
 goog.inherits(vjs.ChaptersButton, vjs.TextTrackButton);
 vjs.ChaptersButton.prototype.kind_ = 'chapters';
@@ -993,7 +1061,8 @@ vjs.ChaptersButton.prototype.createMenu = function(){
 
   menu.el_.appendChild(vjs.createEl('li', {
     className: 'vjs-menu-title',
-    innerHTML: vjs.capitalize(this.kind_)
+    innerHTML: vjs.capitalize(this.kind_),
+    tabindex: -1
   }));
 
   if (chaptersTrack) {

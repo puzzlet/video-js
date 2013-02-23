@@ -1,7 +1,3 @@
-goog.provide('vjs.Player');
-
-goog.require('vjs.Component');
-
 /**
  * Main player class. A player instance is returned by _V_(id);
  * @param {Element} tag        The original video tag used for configuring options
@@ -22,15 +18,15 @@ vjs.Player = function(tag, options, ready){
   // Cache for video property values.
   this.cache_ = {};
 
+  // Set poster
+  this.poster_ = options['poster'];
+  // Set controls
+  this.controls_ = options['controls'];
+
   // Run base component initializing with new options.
   // Builds the element through createEl()
   // Inits and embeds any child components in opts
   vjs.Component.call(this, this, options, ready);
-
-  // Set poster
-  this.poster_ = this.options_['poster'];
-  // Set controls
-  this.controls_ = this.options_['controls'];
 
   // Firstplay event implimentation. Not sold on the event yet.
   // Could probably just check currentTime==0?
@@ -48,16 +44,24 @@ vjs.Player = function(tag, options, ready){
 
   this.on('ended', this.onEnded);
   this.on('play', this.onPlay);
+  this.on('firstplay', this.onFirstPlay);
   this.on('pause', this.onPause);
   this.on('progress', this.onProgress);
   this.on('durationchange', this.onDurationChange);
   this.on('error', this.onError);
+  this.on('fullscreenchange', this.onFullscreenChange);
 
   // Make player easily findable by ID
   vjs.players[this.id_] = this;
 
   // System message
   this.message = '';
+
+  if (options['plugins']) {
+    vjs.obj.each(options['plugins'], function(key, val){
+      this[key](val);
+    }, this);
+  }
 };
 goog.inherits(vjs.Player, vjs.Component);
 
@@ -353,6 +357,14 @@ vjs.Player.prototype.onPlay = function(){
   vjs.addClass(this.el_, 'vjs-playing');
 };
 
+vjs.Player.prototype.onFirstPlay = function(){
+    //If the first starttime attribute is specified
+    //then we will start at the given offset in seconds
+    if(this.options_['starttime']){
+      this.currentTime(this.options_['starttime']);
+    }
+};
+
 vjs.Player.prototype.onPause = function(){
   vjs.removeClass(this.el_, 'vjs-playing');
   vjs.addClass(this.el_, 'vjs-paused');
@@ -373,6 +385,14 @@ vjs.Player.prototype.onDurationChange = function(){
 
 vjs.Player.prototype.onError = function(e) {
   vjs.log('Video Error', e);
+};
+
+vjs.Player.prototype.onFullscreenChange = function(e) {
+  if (this.isFullScreen) {
+    this.addClass('vjs-fullscreen');
+  } else {
+    this.removeClass('vjs-fullscreen');
+  }
 };
 
 // /* Player API
