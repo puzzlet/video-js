@@ -157,6 +157,7 @@ vjs.TextTrack = vjs.Component.extend({
     this.mode_ = 0;
     this.syncOffset_ = 0;
 
+    this.player_.on('resize', vjs.bind(this, this.adjustFontSize));
     this.player_.on('fullscreenchange', vjs.bind(this, this.adjustFontSize));
 
     vjs.on(document, 'keyup', vjs.bind(this, this.onKeyPress));
@@ -322,15 +323,8 @@ vjs.TextTrack.prototype.mode = function(){
  * and restore it to its normal size when not in fullscreen mode.
  */
 vjs.TextTrack.prototype.adjustFontSize = function(){
-    if (this.player_.isFullScreen) {
-        // Scale the font by the same factor as increasing the video width to the full screen window width.
-        // Additionally, multiply that factor by 1.4, which is the default font size for
-        // the caption track (from the CSS)
-        this.el_.style.fontSize = screen.width / this.player_.width() * 1.4 * 100 + '%';
-    } else {
-        // Change the font size of the text track back to its original non-fullscreen size
-        this.el_.style.fontSize = '';
-    }
+  var size = Math.round(Math.min(this.player_.width(), this.player_.height()) * 0.04);
+  this.el_.style.fontSize = Math.max(9, size) + 'px';
 };
 
 /**
