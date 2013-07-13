@@ -57,7 +57,16 @@ vjs.ControlBar.prototype.createEl = function(){
   });
 };
 
-vjs.ControlBar.prototype.onMouseMove = function(){
+vjs.ControlBar.prototype.onMouseMove = function(e){
+  var mouseX = e.pageX, mouseY = e.pageY;
+
+  if (Math.abs(mouseX - this.lastFadeOutX_)
+    + Math.abs(mouseY - this.lastFadeOutY_) < 10)
+    return;
+
+  this.lastFadeOutX_ = mouseX;
+  this.lastFadeOutY_ = mouseY;
+
   this.fadeIn();
   clearInterval(this.mouseMoveTimeout_);
   this.mouseMoveTimeout_ = setTimeout(vjs.bind(this, this.fadeOut), 4000);
