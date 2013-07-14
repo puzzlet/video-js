@@ -59,17 +59,23 @@ vjs.ControlBar.prototype.createEl = function(){
 
 vjs.ControlBar.prototype.onMouseMove = function(e){
   var mouseX = e.pageX, mouseY = e.pageY;
+  this.lastMouseMoveX_ = mouseX;
+  this.lastMouseMoveY_ = mouseY;
 
-  if (Math.abs(mouseX - this.lastFadeOutX_)
-    + Math.abs(mouseY - this.lastFadeOutY_) < 10)
+  if (Math.abs(mouseX - this.mouseMoveCheckX_)
+    + Math.abs(mouseY - this.mouseMoveCheckY_) < 10)
     return;
 
-  this.lastFadeOutX_ = mouseX;
-  this.lastFadeOutY_ = mouseY;
+  this.mouseMoveCheckX_ = mouseX;
+  this.mouseMoveCheckY_ = mouseY;
 
   this.fadeIn();
   clearInterval(this.mouseMoveTimeout_);
-  this.mouseMoveTimeout_ = setTimeout(vjs.bind(this, this.fadeOut), 4000);
+  this.mouseMoveTimeout_ = setTimeout(vjs.bind(this, function(){
+    this.mouseMoveCheckX_ = this.lastMouseMoveX_;
+    this.mouseMoveCheckY_ = this.lastMouseMoveY_;
+    this.fadeOut();
+  }), 4000);
 };
 
 vjs.ControlBar.prototype.fadeIn = function(){
