@@ -323,7 +323,7 @@ vjs.TextTrack.prototype.mode = function(){
  * and restore it to its normal size when not in fullscreen mode.
  */
 vjs.TextTrack.prototype.adjustFontSize = function(){
-  var size = Math.round(Math.min(this.player_.width(), this.player_.height()) * 0.04);
+  var size = Math.round(Math.min(this.player_.width(), this.player_.height()) * 0.07);
   this.el_.style.fontSize = Math.max(9, size) + 'px';
 };
 
