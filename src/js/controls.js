@@ -70,11 +70,13 @@ vjs.ControlBar.prototype.onMouseMove = function(e){
   this.mouseMoveCheckY_ = mouseY;
 
   this.fadeIn();
+  this.player_.trigger('showcursor');
   clearInterval(this.mouseMoveTimeout_);
   this.mouseMoveTimeout_ = setTimeout(vjs.bind(this, function(){
     this.mouseMoveCheckX_ = this.lastMouseMoveX_;
     this.mouseMoveCheckY_ = this.lastMouseMoveY_;
     this.fadeOut();
+    this.player_.trigger('hidecursor');
   }), 4000);
 };
 
