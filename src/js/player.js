@@ -50,6 +50,8 @@ vjs.Player = function(tag, options, ready){
   this.on('durationchange', this.onDurationChange);
   this.on('error', this.onError);
   this.on('fullscreenchange', this.onFullscreenChange);
+  this.on('hidecursor', this.onHideCursor);
+  this.on('showcursor', this.onShowCursor);
 
   // Make player easily findable by ID
   vjs.players[this.id_] = this;
@@ -393,6 +395,14 @@ vjs.Player.prototype.onFullscreenChange = function(e) {
   } else {
     this.removeClass('vjs-fullscreen');
   }
+};
+
+vjs.Player.prototype.onHideCursor = function() {
+  this.addClass('vjs-mouse-idle');
+};
+
+vjs.Player.prototype.onShowCursor = function() {
+  this.removeClass('vjs-mouse-idle');
 };
 
 // /* Player API

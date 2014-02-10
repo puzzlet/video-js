@@ -324,6 +324,7 @@ so you can upgrade to newer versions easier. You can remove all these styles by 
 
 .vjs-default-skin.vjs-fullscreen .vjs-fullscreen-control div { background: url('video-js.png') -75px 0; }
 
+.vjs-default-skin.vjs-fullscreen.vjs-mouse-idle { cursor: none; }
 
 /* Big Play Button (at start)
 ---------------------------------------------------------*/
