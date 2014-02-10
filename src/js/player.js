@@ -102,6 +102,9 @@ vjs.Player = vjs.Component.extend({
       }, this);
     }
 
+    // System message
+    this.message = '';
+
     this.listenForUserActivity();
   }
 });

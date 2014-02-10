@@ -785,6 +785,26 @@ body.vjs-full-window {
   text-shadow: black -2px 0px 1px, black 2px 0px 1px, black 0px -2px 1px, black 0px 2px 1px, black -1px 1px 1px, black 1px 1px 1px, black 1px -1px 1px, black 1px 1px 1px, black -3px 0px 1px, black 3px 0px 1px, black 0px -3px 1px, black 0px 3px 1px, black -2px 2px 1px, black -2px -2px 1px, black 2px -2px 1px, black 2px 2px 1px;
 }
 
+/* Fading sytles, used to fade control bar. */
+.vjs-fade-in {
+  display: block !important;
+  /* Visibility needed to make sure things hide in older browsers too. */
+  visibility: visible;
+  opacity: 1;
+
+  @trans: visibility 0.1s, opacity 0.1s; // Var needed because of comma
+  .transition(@trans);
+}
+.vjs-fade-out {
+  display: block !important;
+  visibility: hidden;
+  opacity: 0;
+
+  @trans: visibility 1.5s, opacity 1.5s;
+  .transition(@trans);
+  /* Wait a moment before fading out the control bar */
+  .transition-delay(2s);
+}
 /* Hide disabled or unsupported controls */
 .vjs-default-skin .vjs-hidden { display: none; }
 
@@ -918,6 +938,18 @@ body.vjs-full-window {
   /* border-color-with-alpha *///
   border-color: @color;
   border-color: @rgba;
+}
+
+/* System Message */
+.vjs-system-message {
+  text-align: left;
+  padding: 1em;
+  color: #777;
+  font-size: 2em;
+  line-height: 1;
+  font-weight: normal;
+  font-family: Helvetica, Arial, sans-serif;
+  text-shadow: black -2px 0px 1px, black 2px 0px 1px, black 0px -2px 1px, black 0px 2px 1px, black -1px 1px 1px, black 1px 1px 1px, black 1px -1px 1px, black 1px 1px 1px, black -3px 0px 1px, black 3px 0px 1px, black 0px -3px 1px, black 0px 3px 1px, black -2px 2px 1px, black -2px -2px 1px, black 2px -2px 1px, black 2px 2px 1px;
 }
 
 // NOTES ON LESS (tracking learnings so we don't forget)

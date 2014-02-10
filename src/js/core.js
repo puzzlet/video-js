@@ -92,6 +92,7 @@ vjs.options = {
   'children': {
     'mediaLoader': {},
     'posterImage': {},
+    'systemMessageDisplay': {},
     'textTrackDisplay': {},
     'loadingSpinner': {},
     'bigPlayButton': {},
