@@ -1239,8 +1239,9 @@ vjs.Player.prototype.userActive = function(bool){
 };
 
 vjs.Player.prototype.listenForUserActivity = function(){
-  var onMouseActivity, onMouseDown, mouseInProgress, onMouseUp,
-      activityCheck, inactivityTimeout;
+  var onMouseActivity, onMouseDown, onMouseMove, mouseInProgress, onMouseUp,
+      activityCheck, inactivityTimeout,
+      mouseMoveCheckX, mouseMoveCheckY;
 
   onMouseActivity = this.reportUserActivity;
 
@@ -1260,6 +1261,19 @@ vjs.Player.prototype.listenForUserActivity = function(){
     onMouseActivity();
     // Stop the interval that maintains activity if the mouse/touch is down
     clearInterval(mouseInProgress);
+  };
+
+  onMouseMove = function(event){
+    var mouseX = event.pageX, mouseY = event.pageY;
+
+    if (Math.abs(mouseX - mouseMoveCheckX)
+      + Math.abs(mouseY - mouseMoveCheckY) > 10)
+    {
+      onMouseActivity();
+    }
+
+    mouseMoveCheckX = mouseX;
+    mouseMoveCheckY = mouseY;
   };
 
   // Any mouse movement will be considered user activity
