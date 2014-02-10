@@ -82,6 +82,18 @@ vjs.Player.prototype.addTextTracks = function(trackList){
   return this;
 };
 
+/**
+ * Same as addTextTrack, but replaces current tracks
+ * @param {Array} trackList Array of track elements or objects (fake track elements)
+ */
+vjs.Player.prototype.replaceTextTracks = function(trackList){
+  this.textTracks_ = [];
+  this.addTextTracks(trackList);
+  var el = this.player_.getChild('controlBar').getChild('subtitlesButton');
+  el.updateMenu();
+  return this;
+};
+
 // Show a text track
 // disableSameKind: disable all other tracks of the same kind. Value should be a track kind (captions, etc.)
 vjs.Player.prototype.showTextTrack = function(id, disableSameKind){
@@ -839,6 +851,35 @@ vjs.TextTrackButton = vjs.MenuButton.extend({
 
 //   return menu;
 // };
+
+vjs.TextTrackButton.prototype.updateMenu = function(menu){
+  var i;
+
+  if (menu === undefined) {
+    menu = this.menu;
+  }
+
+  if (this.items) {
+    for (i = 0; i < this.items.length; i++) {
+      menu.removeItem(this.items[i]);
+    }
+  }
+
+  this.items = this.createItems();
+
+  if (this.items.length === 0) {
+    this.hide();
+  }
+  else {
+    // Add menu items to the menu
+    for (i = 0; i < this.items.length; i++) {
+      menu.addItem(this.items[i]);
+    }
+    this.show();
+  }
+
+  return menu;
+};
 
 // Create a menu item for each text track
 vjs.TextTrackButton.prototype.createItems = function(){
