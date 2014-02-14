@@ -52,12 +52,12 @@ module.exports = function(grunt) {
     minify: {
       source:{
         src: ['build/files/combined.video.js', 'build/compiler/goog.base.js', 'src/js/exports.js'],
-        externs: ['src/js/media/flash.externs.js'],
+        externs: ['src/js/player.externs.js', 'src/js/media/flash.externs.js'],
         dest: 'build/files/minified.video.js'
       },
       tests: {
-        src: ['build/files/combined.video.js', 'build/compiler/goog.base.js', 'src/js/exports.js', 'test/unit/*.js', '!test/unit/api.js'],
-        externs: ['src/js/media/flash.externs.js', 'test/qunit/qunit-externs.js'],
+        src: ['build/files/combined.video.js', 'build/compiler/goog.base.js', 'src/js/exports.js', 'test/unit/*.js'],
+        externs: ['src/js/player.externs.js', 'src/js/media/flash.externs.js', 'test/qunit-externs.js'],
         dest: 'build/files/test.minified.video.js'
       }
     },
@@ -147,6 +147,29 @@ module.exports = function(grunt) {
           baseURL: 'https://github.com/videojs/video.js/blob/master/'
         }
       }
+    },
+    zip: {
+      dist: {
+        router: function (filepath) {
+          var path = require('path');
+          return path.relative('dist', filepath);
+        },
+        compression: 'DEFLATE',
+        src: ['dist/video-js/**/*'],
+        dest: 'dist/video-js-' + version.full + '.zip'
+      }
+    },
+    usebanner: {
+      dist: {
+        options: {
+          position: 'top',
+          banner: '/*! Video.js v' + version.full + ' <%= pkg.copyright %> */ ',
+          linebreak: true
+        },
+        files: {
+          src: [ 'build/files/minified.video.js']
+        }
+      }
     }
   });
 
@@ -161,15 +184,17 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('contribflow');
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('videojs-doc-generator');
+  grunt.loadNpmTasks('grunt-zip');
+  grunt.loadNpmTasks('grunt-banner');
 
   // grunt.loadTasks('./docs/tasks/');
   // grunt.loadTasks('../videojs-doc-generator/tasks/');
 
   // Default task.
-  grunt.registerTask('default', ['jshint', 'less', 'build', 'minify', 'dist']);
+  grunt.registerTask('default', ['jshint', 'less', 'build', 'minify', 'usebanner', 'dist']);
   // Development watch task
   grunt.registerTask('dev', ['jshint', 'less', 'build', 'qunit:source']);
-  grunt.registerTask('test', ['jshint', 'less', 'build', 'minify', 'qunit']);
+  grunt.registerTask('test', ['jshint', 'less', 'build', 'minify', 'usebanner', 'qunit']);
 
   var fs = require('fs'),
       gzip = require('zlib').gzip;
@@ -192,7 +217,7 @@ module.exports = function(grunt) {
 
     // Copy over other files
     // grunt.file.copy('src/css/video-js.png', 'build/files/video-js.png');
-    grunt.file.copy('src/swf/video-js.swf', 'build/files/video-js.swf');
+    grunt.file.copy('node_modules/videojs-swf/dist/video-js.swf', 'build/files/video-js.swf');
 
     // Inject version number into css file
     var css = grunt.file.read('build/files/video-js.css');
@@ -236,7 +261,7 @@ module.exports = function(grunt) {
                 + ' --js_output_file=' + dest
                 + ' --create_source_map ' + dest + '.map --source_map_format=V3'
                 + ' --jscomp_warning=checkTypes --warning_level=VERBOSE'
-                + ' --output_wrapper "/*! Video.js v' + version.full + ' ' + pkg.copyright + ' */ (function() {%output%})();"';
+                + ' --output_wrapper "(function() {%output%})();"';
                 //@ sourceMappingURL=video.js.map
 
     // Add each js file
@@ -265,9 +290,7 @@ module.exports = function(grunt) {
     });
   });
 
-  grunt.registerTask('dist', 'Creating distribution', function(){
-    var exec = require('child_process').exec;
-    var done = this.async();
+  grunt.registerTask('dist-copy', 'Assembling distribution', function(){
     var css, jsmin, jsdev, cdnjs;
 
     // Manually copy each source file
@@ -275,7 +298,7 @@ module.exports = function(grunt) {
     grunt.file.copy('build/files/combined.video.js', 'dist/video-js/video.dev.js');
     grunt.file.copy('build/files/video-js.css', 'dist/video-js/video-js.css');
     grunt.file.copy('build/files/video-js.min.css', 'dist/video-js/video-js.min.css');
-    grunt.file.copy('build/files/video-js.swf', 'dist/video-js/video-js.swf');
+    grunt.file.copy('node_modules/videojs-swf/dist/video-js.swf', 'dist/video-js/video-js.swf');
     grunt.file.copy('build/demo-files/demo.html', 'dist/video-js/demo.html');
     grunt.file.copy('build/demo-files/demo.captions.vtt', 'dist/video-js/demo.captions.vtt');
 
@@ -291,7 +314,7 @@ module.exports = function(grunt) {
     // Minified version only, doesn't need demo files
     grunt.file.copy('build/files/minified.video.js', 'dist/cdn/video.js');
     grunt.file.copy('build/files/video-js.min.css', 'dist/cdn/video-js.css');
-    grunt.file.copy('build/files/video-js.swf', 'dist/cdn/video-js.swf');
+    grunt.file.copy('node_modules/videojs-swf/dist/video-js.swf', 'dist/cdn/video-js.swf');
     grunt.file.copy('build/demo-files/demo.captions.vtt', 'dist/cdn/demo.captions.vtt');
     grunt.file.copy('build/demo-files/demo.html', 'dist/cdn/demo.html');
 
@@ -305,21 +328,8 @@ module.exports = function(grunt) {
     // GA Tracking Pixel (manually building the pixel URL)
     cdnjs = uglify.minify('src/js/cdn.js').code.replace('v0.0.0', 'v'+version.full);
     grunt.file.write('dist/cdn/video.js', jsmin + cdnjs);
-
-    // Zip up into video-js-VERSION.zip
-    exec('cd dist && zip -r video-js-'+version.full+'.zip video-js && cd ..', { maxBuffer: 500*1024 }, function(err, stdout, stderr){
-
-      if (err) {
-        grunt.warn(err);
-        done(false);
-      }
-
-      if (stdout) {
-        grunt.log.writeln(stdout);
-      }
-
-      done();
-    });
   });
+
+  grunt.registerTask('dist', 'Creating distribution', ['dist-copy', 'zip:dist']);
 
 };

@@ -22,6 +22,7 @@ vjs.Html5 = vjs.MediaTechController.extend({
     this.features['fullscreenResize'] = true;
 
     vjs.MediaTechController.call(this, player, options, ready);
+    this.setupTriggers();
 
     var source = options['source'];
 
@@ -54,7 +55,6 @@ vjs.Html5 = vjs.MediaTechController.extend({
       }
     });
 
-    this.setupTriggers();
     this.triggerReady();
   }
 });
@@ -213,6 +213,9 @@ vjs.Html5.prototype.exitFullScreen = function(){
 vjs.Html5.prototype.src = function(src){ this.el_.src = src; };
 vjs.Html5.prototype.load = function(){ this.el_.load(); };
 vjs.Html5.prototype.currentSrc = function(){ return this.el_.currentSrc; };
+
+vjs.Html5.prototype.poster = function(){ return this.el_.poster; };
+vjs.Html5.prototype.setPoster = function(val){ this.el_.poster = val; };
 
 vjs.Html5.prototype.preload = function(){ return this.el_.preload; };
 vjs.Html5.prototype.setPreload = function(val){ this.el_.preload = val; };

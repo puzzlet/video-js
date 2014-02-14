@@ -32,6 +32,9 @@ vjs.Player = vjs.Component.extend({
   init: function(tag, options, ready){
     this.tag = tag; // Store the original tag used to set options
 
+    // Make sure tag ID exists
+    tag.id = tag.id || 'vjs_video_' + vjs.guid++;
+
     // Set Options
     // The options argument overrides options set in the video tag
     // which overrides globally set options.
@@ -50,6 +53,10 @@ vjs.Player = vjs.Component.extend({
     // now remove immediately so native controls don't flash.
     // May be turned back on by HTML5 tech if nativeControlsForTouch is true
     tag.controls = false;
+
+    // we don't want the player to report touch activity on itself
+    // see enableTouchActivity in Component
+    options.reportTouchActivity = false;
 
     // Run base component initializing with new options.
     // Builds the element through createEl()
@@ -208,9 +215,6 @@ vjs.Player.prototype.createEl = function(){
     }
   }
 
-  // Make sure tag ID exists
-  tag.id = tag.id || 'vjs_video_' + vjs.guid++;
-
   // Give video tag ID and class to player div
   // ID will now reference player box, not the video tag
   el.id = tag.id;
@@ -250,10 +254,10 @@ vjs.Player.prototype.loadTech = function(techName, source){
   // Pause and remove current playback technology
   if (this.tech) {
     this.unloadTech();
+  }
 
-  // if this is the first time loading, HTML5 tag will exist but won't be initialized
-  // so we need to remove it if we're not loading HTML5
-  } else if (techName !== 'Html5' && this.tag) {
+  // get rid of the HTML5 video tag as soon as we are using another tech
+  if (techName !== 'Html5' && this.tag) {
     vjs.Html5.disposeMediaElement(this.tag);
     this.tag = null;
   }
@@ -500,7 +504,12 @@ vjs.Player.prototype.onEnded = function(){
  */
 vjs.Player.prototype.onDurationChange = function(){
   // Allows for cacheing value instead of asking player each time.
-  this.duration(this.techGet('duration'));
+  // We need to get the techGet response and check for a value so we don't
+  // accidentally cause the stack to blow up.
+  var duration = this.techGet('duration');
+  if (duration) {
+    this.duration(duration);
+  }
 };
 
 /**
@@ -514,7 +523,7 @@ vjs.Player.prototype.onVolumeChange;
  * @event fullscreenchange
  */
 vjs.Player.prototype.onFullscreenChange = function() {
-  if (this.isFullScreen) {
+  if (this.isFullScreen()) {
     this.addClass('vjs-fullscreen');
   } else {
     this.removeClass('vjs-fullscreen');
@@ -644,9 +653,6 @@ vjs.Player.prototype.paused = function(){
 vjs.Player.prototype.currentTime = function(seconds){
   if (seconds !== undefined) {
 
-    // cache the last set value for smoother scrubbing
-    this.cache_.lastSetCurrentTime = seconds;
-
     this.techCall('setCurrentTime', seconds);
 
     // improve the accuracy of manual timeupdates
@@ -655,8 +661,12 @@ vjs.Player.prototype.currentTime = function(seconds){
     return this;
   }
 
-  // cache last currentTime and return
-  // default to 0 seconds
+  // cache last currentTime and return. default to 0 seconds
+  //
+  // Caching the currentTime is meant to prevent a massive amount of reads on the tech's
+  // currentTime when scrubbing, but may not provide much performace benefit afterall.
+  // Should be tested. Also something has to read the actual current time or the cache will
+  // never get updated.
   return this.cache_.currentTime = (this.techGet('currentTime') || 0);
 };
 
@@ -684,7 +694,7 @@ vjs.Player.prototype.duration = function(seconds){
     this.onDurationChange();
   }
 
-  return this.cache_.duration;
+  return this.cache_.duration || 0;
 };
 
 // Calculates how much time is left. Not in spec, but useful.
@@ -800,8 +810,43 @@ vjs.Player.prototype.muted = function(muted){
   return this.techGet('muted') || false; // Default to false
 };
 
-// Check if current tech can support native fullscreen (e.g. with built in controls lik iOS, so not our flash swf)
-vjs.Player.prototype.supportsFullScreen = function(){ return this.techGet('supportsFullScreen') || false; };
+// Check if current tech can support native fullscreen
+// (e.g. with built in controls lik iOS, so not our flash swf)
+vjs.Player.prototype.supportsFullScreen = function(){
+  return this.techGet('supportsFullScreen') || false;
+};
+
+/**
+ * is the player in fullscreen
+ * @type {Boolean}
+ * @private
+ */
+vjs.Player.prototype.isFullScreen_ = false;
+
+/**
+ * Check if the player is in fullscreen mode
+ *
+ *     // get
+ *     var fullscreenOrNot = myPlayer.isFullScreen();
+ *
+ *     // set
+ *     myPlayer.isFullScreen(true); // tell the player it's in fullscreen
+ *
+ * NOTE: As of the latest HTML5 spec, isFullScreen is no longer an official
+ * property and instead document.fullscreenElement is used. But isFullScreen is
+ * still a valuable property for internal player workings.
+ *
+ * @param  {Boolean=} isFS Update the player's fullscreen state
+ * @return {Boolean} true if fullscreen, false if not
+ * @return {vjs.Player} self, when setting
+ */
+vjs.Player.prototype.isFullScreen = function(isFS){
+  if (isFS !== undefined) {
+    this.isFullScreen_ = isFS;
+    return this;
+  }
+  return this.isFullScreen_;
+};
 
 /**
  * Increase the size of the video to full screen
@@ -819,7 +864,7 @@ vjs.Player.prototype.supportsFullScreen = function(){ return this.techGet('suppo
  */
 vjs.Player.prototype.requestFullScreen = function(){
   var requestFullScreen = vjs.support.requestFullScreen;
-  this.isFullScreen = true;
+  this.isFullScreen(true);
 
   if (requestFullScreen) {
     // the browser supports going fullscreen at the element level so we can
@@ -831,10 +876,10 @@ vjs.Player.prototype.requestFullScreen = function(){
     // players on a page, they would all be reacting to the same fullscreen
     // events
     vjs.on(document, requestFullScreen.eventName, vjs.bind(this, function(e){
-      this.isFullScreen = document[requestFullScreen.isFullScreen];
+      this.isFullScreen(document[requestFullScreen.isFullScreen]);
 
       // If cancelling fullscreen, remove event listener.
-      if (this.isFullScreen === false) {
+      if (this.isFullScreen() === false) {
         vjs.off(document, requestFullScreen.eventName, arguments.callee);
       }
 
@@ -866,7 +911,7 @@ vjs.Player.prototype.requestFullScreen = function(){
  */
 vjs.Player.prototype.cancelFullScreen = function(){
   var requestFullScreen = vjs.support.requestFullScreen;
-  this.isFullScreen = false;
+  this.isFullScreen(false);
 
   // Check for browser element fullscreen support
   if (requestFullScreen) {
@@ -901,7 +946,7 @@ vjs.Player.prototype.enterFullWindow = function(){
 };
 vjs.Player.prototype.fullWindowOnEscKey = function(event){
   if (event.keyCode === 27) {
-    if (this.isFullScreen === true) {
+    if (this.isFullScreen() === true) {
       this.cancelFullScreen();
     } else {
       this.exitFullWindow();
@@ -1096,11 +1141,18 @@ vjs.Player.prototype.poster_;
  * @return {vjs.Player} self when setting
  */
 vjs.Player.prototype.poster = function(src){
-  if (src !== undefined) {
-    this.poster_ = src;
-    return this;
+  if (src === undefined) {
+    return this.poster_;
   }
-  return this.poster_;
+
+  // update the internal poster variable
+  this.poster_ = src;
+
+  // update the tech's poster
+  this.techCall('setPoster', src);
+
+  // alert components that the poster has been set
+  this.trigger('posterchange');
 };
 
 /**
@@ -1243,7 +1295,7 @@ vjs.Player.prototype.listenForUserActivity = function(){
       activityCheck, inactivityTimeout,
       mouseMoveCheckX, mouseMoveCheckY;
 
-  onMouseActivity = this.reportUserActivity;
+  onMouseActivity = vjs.bind(this, this.reportUserActivity);
 
   onMouseDown = function() {
     onMouseActivity();
@@ -1254,7 +1306,7 @@ vjs.Player.prototype.listenForUserActivity = function(){
     // Setting userActivity=true now and setting the interval to the same time
     // as the activityCheck interval (250) should ensure we never miss the
     // next activityCheck
-    mouseInProgress = setInterval(vjs.bind(this, onMouseActivity), 250);
+    mouseInProgress = setInterval(onMouseActivity, 250);
   };
 
   onMouseUp = function(event) {
@@ -1285,14 +1337,6 @@ vjs.Player.prototype.listenForUserActivity = function(){
   // Shouldn't need to use inProgress interval because of key repeat
   this.on('keydown', onMouseActivity);
   this.on('keyup', onMouseActivity);
-
-  // Consider any touch events that bubble up to be activity
-  // Certain touches on the tech will be blocked from bubbling because they
-  // toggle controls
-  this.on('touchstart', onMouseDown);
-  this.on('touchmove', onMouseActivity);
-  this.on('touchend', onMouseUp);
-  this.on('touchcancel', onMouseUp);
 
   // Run an interval every 250 milliseconds instead of stuffing everything into
   // the mousemove/touchmove function itself, to prevent performance degradation.
@@ -1334,7 +1378,6 @@ vjs.Player.prototype.listenForUserActivity = function(){
 // Methods to add support for
 // networkState: function(){ return this.techCall('networkState'); },
 // readyState: function(){ return this.techCall('readyState'); },
-// seeking: function(){ return this.techCall('seeking'); },
 // initialTime: function(){ return this.techCall('initialTime'); },
 // startOffsetTime: function(){ return this.techCall('startOffsetTime'); },
 // played: function(){ return this.techCall('played'); },
@@ -1398,5 +1441,3 @@ vjs.Player.prototype.listenForUserActivity = function(){
   }
 
 })();
-
-

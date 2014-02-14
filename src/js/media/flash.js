@@ -60,7 +60,9 @@ vjs.Flash = vjs.MediaTechController.extend({
           'id': objId,
           'name': objId, // Both ID and Name needed or swf to identifty itself
           'class': 'vjs-tech'
-        }, options['attributes'])
+        }, options['attributes']),
+
+        lastSeekTarget
     ;
 
     // If source was supplied pass as a flash var.
@@ -75,6 +77,19 @@ vjs.Flash = vjs.MediaTechController.extend({
       }
     }
 
+    this['setCurrentTime'] = function(time){
+      lastSeekTarget = time;
+      this.el_.vjs_setProperty('currentTime', time);
+    };
+    this['currentTime'] = function(time){
+      // when seeking make the reported time keep up with the requested time
+      // by reading the time we're seeking to
+      if (this.seeking()) {
+        return lastSeekTarget;
+      }
+      return this.el_.vjs_getProperty('currentTime');
+    };
+
     // Add placeholder to player div
     vjs.insertFirst(placeHolder, parentEl);
 
@@ -85,6 +100,17 @@ vjs.Flash = vjs.MediaTechController.extend({
         this.load();
         this.play();
         this.currentTime(options['startTime']);
+      });
+    }
+
+    // firefox doesn't bubble mousemove events to parent. videojs/video-js-swf#37
+    // bugzilla bug: https://bugzilla.mozilla.org/show_bug.cgi?id=836786
+    if (vjs.IS_FIREFOX) {
+      this.ready(function(){
+        vjs.on(this.el(), 'mousemove', vjs.bind(this, function(){
+          // since it's a custom event, don't bubble higher than the player
+          this.player().trigger({ 'type':'mousemove', 'bubbles': false });
+        }));
       });
     }
 
@@ -272,6 +298,9 @@ vjs.Flash.prototype.load = function(){
 vjs.Flash.prototype.poster = function(){
   this.el_.vjs_getProperty('poster');
 };
+vjs.Flash.prototype.setPoster = function(){
+  // poster images are not handled by the Flash tech so make this a no-op
+};
 
 vjs.Flash.prototype.buffered = function(){
   return vjs.createTimeRange(0, this.el_.vjs_getProperty('buffered'));
@@ -288,9 +317,9 @@ vjs.Flash.prototype.enterFullScreen = function(){
 
 // Create setters and getters for attributes
 var api = vjs.Flash.prototype,
-    readWrite = 'rtmpConnection,rtmpStream,preload,currentTime,defaultPlaybackRate,playbackRate,autoplay,loop,mediaGroup,controller,controls,volume,muted,defaultMuted'.split(','),
+    readWrite = 'rtmpConnection,rtmpStream,preload,defaultPlaybackRate,playbackRate,autoplay,loop,mediaGroup,controller,controls,volume,muted,defaultMuted'.split(','),
     readOnly = 'error,currentSrc,networkState,readyState,seeking,initialTime,duration,startOffsetTime,paused,played,seekable,ended,videoTracks,audioTracks,videoWidth,videoHeight,textTracks'.split(',');
-    // Overridden: buffered
+    // Overridden: buffered, currentTime
 
 /**
  * @this {*}

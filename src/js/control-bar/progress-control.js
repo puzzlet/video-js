@@ -68,25 +68,7 @@ vjs.SeekBar.prototype.updateARIAAttributes = function(){
 };
 
 vjs.SeekBar.prototype.getPercent = function(){
-  var currentTime;
-  // Flash RTMP provider will not report the correct time
-  // immediately after a seek. This isn't noticeable if you're
-  // seeking while the video is playing, but it is if you seek
-  // while the video is paused.
-  if (this.player_.techName === 'Flash' && this.player_.seeking()) {
-    var cache = this.player_.getCache();
-    if (cache.lastSetCurrentTime) {
-      currentTime = cache.lastSetCurrentTime;
-    }
-    else {
-      currentTime = this.player_.currentTime();
-    }
-  }
-  else {
-    currentTime = this.player_.currentTime();
-  }
-
-  return currentTime / this.player_.duration();
+  return this.player_.currentTime() / this.player_.duration();
 };
 
 vjs.SeekBar.prototype.onMouseDown = function(event){
@@ -182,7 +164,12 @@ vjs.PlayProgressBar.prototype.createEl = function(){
  * @param {Object=} options
  * @constructor
  */
-vjs.SeekHandle = vjs.SliderHandle.extend();
+vjs.SeekHandle = vjs.SliderHandle.extend({
+  init: function(player, options) {
+    vjs.SliderHandle.call(this, player, options);
+    player.on('timeupdate', vjs.bind(this, this.updateContent));
+  }
+});
 
 /**
  * The default value for the handle content, which may be read by screen readers
@@ -193,8 +180,14 @@ vjs.SeekHandle = vjs.SliderHandle.extend();
 vjs.SeekHandle.prototype.defaultValue = '00:00';
 
 /** @inheritDoc */
-vjs.SeekHandle.prototype.createEl = function(){
+vjs.SeekHandle.prototype.createEl = function() {
   return vjs.SliderHandle.prototype.createEl.call(this, 'div', {
-    className: 'vjs-seek-handle'
+    className: 'vjs-seek-handle',
+    'aria-live': 'off'
   });
+};
+
+vjs.SeekHandle.prototype.updateContent = function() {
+  var time = (this.player_.scrubbing) ? this.player_.getCache().currentTime : this.player_.currentTime();
+  this.el_.innerHTML = '<span class="vjs-control-text">' + vjs.formatTime(time, this.player_.duration()) + '</span>';
 };

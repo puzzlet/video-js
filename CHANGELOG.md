@@ -2,7 +2,27 @@ CHANGELOG
 =========
 
 ## Unreleased (HEAD)
-_(none)_
+* Made the poster updateable after initialization ([view](https://github.com/videojs/video.js/pull/838))
+* Exported more textTrack functions ([view](https://github.com/videojs/video.js/pull/815))
+* Moved player ID generation to support video tags with no IDs ([view](https://github.com/videojs/video.js/pull/845))
+* Moved to using QUnit as a dependency ([view](https://github.com/videojs/video.js/pull/850))
+* Added the util namespace for public utility functions ([view](https://github.com/videojs/video.js/pull/862))
+* Fixed an issue with calling duration before Flash is loaded ([view](https://github.com/videojs/video.js/pull/861))
+* Added player methods to externs so they can be overridden ([view](https://github.com/videojs/video.js/pull/878))
+* Fixed html5 playback when switching between media techs ([view](https://github.com/videojs/video.js/pull/887))
+* Fixed Firefox+Flash mousemove events so controls don't hide permanently ([view](https://github.com/videojs/video.js/pull/899))
+* Fixed a test for touch detection ([view](https://github.com/videojs/video.js/pull/962))
+* Updated the src file list for karma tests ([view](https://github.com/videojs/video.js/pull/948))
+* Added more tests for API properties after minification ([view](https://github.com/videojs/video.js/pull/906))
+* Updated projet to use npm version of videojs-swf ([view](https://github.com/videojs/video.js/pull/930))
+* Added support for dist zipping on windows ([view](https://github.com/videojs/video.js/pull/944))
+* Fixed iOS fullscreen issue ([view](https://github.com/videojs/video.js/pull/977))
+* Fixed touch event bubbling ([view](https://github.com/videojs/video.js/pull/992))
+* Fixed ARIA role attribute for button and slider ([view](https://github.com/videojs/video.js/pull/988))
+* Fixed and issue where a component's dispose event would bubble up ([view](https://github.com/videojs/video.js/pull/981))
+* Quieted down deprecation warnings ([view](https://github.com/videojs/video.js/pull/971))
+* Update seek handle to display the current time ([view](https://github.com/videojs/video.js/pull/902))
+* Added requirejs and browserify support (UMD) ([view](https://github.com/videojs/video.js/pull/998))
 
 --------------------
 
