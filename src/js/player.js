@@ -1328,9 +1328,9 @@ vjs.Player.prototype.listenForUserActivity = function(){
     mouseMoveCheckY = mouseY;
   };
 
-  // Any mouse movement will be considered user activity
+  // Any mouse movement will be checked for threshold first.
   this.on('mousedown', onMouseDown);
-  this.on('mousemove', onMouseActivity);
+  this.on('mousemove', onMouseMove);
   this.on('mouseup', onMouseUp);
 
   // Listen for keyboard navigation
