@@ -1293,7 +1293,8 @@ vjs.Player.prototype.userActive = function(bool){
 vjs.Player.prototype.listenForUserActivity = function(){
   var onMouseActivity, onMouseDown, onMouseMove, mouseInProgress, onMouseUp,
       activityCheck, inactivityTimeout,
-      mouseMoveCheckX, mouseMoveCheckY;
+      mouseMoveCheckX, mouseMoveCheckY,
+      lastMouseMoveX, lastMouseMoveY;
 
   onMouseActivity = vjs.bind(this, this.reportUserActivity);
 
@@ -1322,10 +1323,12 @@ vjs.Player.prototype.listenForUserActivity = function(){
       + Math.abs(mouseY - mouseMoveCheckY) > 10)
     {
       onMouseActivity();
+      mouseMoveCheckX = mouseX;
+      mouseMoveCheckY = mouseY;
     }
 
-    mouseMoveCheckX = mouseX;
-    mouseMoveCheckY = mouseY;
+    lastMouseMoveX = mouseX;
+    lastMouseMoveY = mouseY;
   };
 
   // Any mouse movement will be checked for threshold first.
@@ -1363,6 +1366,8 @@ vjs.Player.prototype.listenForUserActivity = function(){
         // causing a flicker
         if (!this.userActivity_) {
           this.userActive(false);
+          mouseMoveCheckX = lastMouseMoveX;
+          mouseMoveCheckY = lastMouseMoveY;
         }
       }), 2000);
     }
