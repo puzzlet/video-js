@@ -77,20 +77,7 @@ vjs.Player = vjs.Component.extend({
     //   this.addClass('vjs-touch-enabled');
     // }
 
-    // Firstplay event implimentation. Not sold on the event yet.
-    // Could probably just check currentTime==0?
-    this.one('play', function(e){
-      var fpEvent = { type: 'firstplay', target: this.el_ };
-      // Using vjs.trigger so we can check if default was prevented
-      var keepGoing = vjs.trigger(this.el_, fpEvent);
-
-      if (!keepGoing) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-      }
-    });
-
+    this.on('loadstart', this.onLoadStart);
     this.on('ended', this.onEnded);
     this.on('play', this.onPlay);
     this.on('firstplay', this.onFirstPlay);
@@ -410,7 +397,27 @@ vjs.Player.prototype.stopTrackingCurrentTime = function(){ clearInterval(this.cu
  * Fired when the user agent begins looking for media data
  * @event loadstart
  */
-vjs.Player.prototype.onLoadStart;
+vjs.Player.prototype.onLoadStart = function() {
+  // remove any first play listeners that weren't triggered from a previous video.
+  this.off('play', initFirstPlay);
+  this.one('play', initFirstPlay);
+
+  vjs.removeClass(this.el_, 'vjs-has-started');
+};
+
+ // Need to create this outside the scope of onLoadStart so it
+ // can be added and removed (to avoid piling first play listeners).
+function initFirstPlay(e) {
+  var fpEvent = { type: 'firstplay', target: this.el_ };
+  // Using vjs.trigger so we can check if default was prevented
+  var keepGoing = vjs.trigger(this.el_, fpEvent);
+
+  if (!keepGoing) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+  }
+}
 
 /**
  * Fired when the player has initial duration and dimension information
@@ -508,7 +515,16 @@ vjs.Player.prototype.onDurationChange = function(){
   // accidentally cause the stack to blow up.
   var duration = this.techGet('duration');
   if (duration) {
+    if (duration < 0) {
+      duration = Infinity;
+    }
     this.duration(duration);
+    // Determine if the stream is live and propagate styles down to UI.
+    if (duration === Infinity) {
+      this.addClass('vjs-live');
+    } else {
+      this.removeClass('vjs-live');
+    }
   }
 };
 
@@ -1022,9 +1038,14 @@ vjs.Player.prototype.selectSource = function(sources){
  *     ]);
  *
  * @param  {String|Object|Array=} source The source URL, object, or array of sources
- * @return {vjs.Player} self
+ * @return {String} The current video source when getting
+ * @return {String} The player when setting
  */
 vjs.Player.prototype.src = function(source){
+  if (source === undefined) {
+    return this.techGet('src');
+  }
+
   // Case: Array of source objects to choose from and pick the best to play
   if (source instanceof Array) {
 
@@ -1046,6 +1067,7 @@ vjs.Player.prototype.src = function(source){
       this.el_.appendChild(vjs.createEl('p', {
         innerHTML: this.options()['notSupportedMessage']
       }));
+      this.triggerReady(); // we could not find an appropriate tech, but let's still notify the delegate that this is it
     }
 
   // Case: Source object { src: '', type: '' ... }
@@ -1077,6 +1099,7 @@ vjs.Player.prototype.src = function(source){
       }
     }
   }
+
   return this;
 };
 
@@ -1276,10 +1299,13 @@ vjs.Player.prototype.userActive = function(bool){
         //
         // When this gets resolved in ALL browsers it can be removed
         // https://code.google.com/p/chromium/issues/detail?id=103041
-        this.tech.one('mousemove', function(e){
-          e.stopPropagation();
-          e.preventDefault();
-        });
+        if(this.tech) {
+          this.tech.one('mousemove', function(e){
+            e.stopPropagation();
+            e.preventDefault();
+          });
+        }
+
         this.removeClass('vjs-user-active');
         this.addClass('vjs-user-inactive');
         this.trigger('userinactive');

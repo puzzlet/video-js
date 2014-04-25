@@ -20,8 +20,8 @@ You can download the Video.js source and host it on your own servers, or use the
 
 ### CDN Version ###
 ```html
-<link href="//vjs.zencdn.net/4.3/video-js.css" rel="stylesheet">
-<script src="//vjs.zencdn.net/4.3/video.js"></script>
+<link href="//vjs.zencdn.net/4.5/video-js.css" rel="stylesheet">
+<script src="//vjs.zencdn.net/4.5/video.js"></script>
 ```
 
 ### Self Hosted. ###
@@ -39,7 +39,7 @@ Step 2: Add an HTML5 video tag to your page.
 --------------------------------------------
 With Video.js you just use an HTML5 video tag to embed a video. Video.js will then read the tag and make it work in all browsers, not just ones that support HTML5 video. Beyond the basic markup, Video.js needs a few extra pieces.
 
-  1. The 'data-setup' Atrribute tells Video.js to automatically set up the video when the page is ready, and read any options (in JSON format) from the attribute (see [options](options.md)). There are other methods for initializing the player, but this is the easiest.
+  1. The 'data-setup' Attribute tells Video.js to automatically set up the video when the page is ready, and read any options (in JSON format) from the attribute (see [options](options.md)). There are other methods for initializing the player, but this is the easiest.
 
   2. The 'id' Attribute: Should be used and unique for every video on the same page.
 
@@ -89,13 +89,13 @@ The third argument is a 'ready' callback. Once Video.js has initialized it will 
 Instead of using an element ID, you can also pass a reference to the element itself.
 
 ```js
-videojs(document.getElementsById('example_video_1')), {}, function()) {
+videojs(document.getElementById('example_video_1'), {}, function() {
   // This is functionally the same as the previous example.
 });
 ```
 
 ```js
-videojs(document.getElementsByClassName('awesome_video_class')[0], {}, function()) {
+videojs(document.getElementsByClassName('awesome_video_class')[0], {}, function() {
   // You can grab an element by class if you'd like, just make sure
   // if it's an array that you pick one (here we chose the first).
 });

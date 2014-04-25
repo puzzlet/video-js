@@ -1,7 +1,40 @@
 CHANGELOG
 =========
 
-## Unreleased (HEAD)
+## HEAD (Unreleased)
+* Updated the UI to support live video ([view](https://github.com/videojs/video.js/pull/1121))
+* The UI now resets after a source change ([view](https://github.com/videojs/video.js/pull/1124))
+* Now assuming smart CSS defaults for sliders to prevent reflow on player init ([view](https://github.com/videojs/video.js/pull/1122))
+* Fixed the title element placement in menus [[view](https://github.com/videojs/video.js/pull/1114)]
+* Fixed title support for menu buttons ([view](https
+
+--------------------
+
+## 4.5.2 (2014-04-12)
+* Updated release versioning to include bower.json and component.json
+
+## 4.5.1 (2014-03-27)
+* Fixed a bug from the last release where canPlaySource was no longer exported
+
+## 4.5.0 (2014-03-27)
+* Added component(1) support ([view](https://github.com/videojs/video.js/pull/1032))
+* Captions now move down when controls are hidden ([view](https://github.com/videojs/video.js/pull/1053))
+* Added the .less source file to the distribution files ([view](https://github.com/videojs/video.js/pull/1056))
+* Changed src() to return the current selected source ([view](https://github.com/videojs/video.js/pull/968))
+* Added a grunt task for opening the next issue that needs addressing ([view](https://github.com/videojs/video.js/pull/1059))
+* Fixed Android 4.0+ devices' check for HLS support ([view](https://github.com/videojs/video.js/pull/1084))
+
+## 4.4.3 (2014-03-06)
+* Fixed bugs in IE9 Windows 7N with no Media Player ([view](https://github.com/videojs/video.js/pull/1060))
+* Fixed a bug with setPoster() in the minified version ([view](https://github.com/videojs/video.js/pull/1062))
+
+## 4.4.2 (2014-02-24)
+* Fixed module.exports in minified version ([view](https://github.com/videojs/video.js/pull/1038))
+
+## 4.4.1 (2014-02-18)
+* Added .npmignore so dist files wouldn't be ignored in packages
+
+## 4.4.0 (2014-02-18)
 * Made the poster updateable after initialization ([view](https://github.com/videojs/video.js/pull/838))
 * Exported more textTrack functions ([view](https://github.com/videojs/video.js/pull/815))
 * Moved player ID generation to support video tags with no IDs ([view](https://github.com/videojs/video.js/pull/845))
@@ -19,12 +52,10 @@ CHANGELOG
 * Fixed iOS fullscreen issue ([view](https://github.com/videojs/video.js/pull/977))
 * Fixed touch event bubbling ([view](https://github.com/videojs/video.js/pull/992))
 * Fixed ARIA role attribute for button and slider ([view](https://github.com/videojs/video.js/pull/988))
-* Fixed and issue where a component's dispose event would bubble up ([view](https://github.com/videojs/video.js/pull/981))
+* Fixed an issue where a component's dispose event would bubble up ([view](https://github.com/videojs/video.js/pull/981))
 * Quieted down deprecation warnings ([view](https://github.com/videojs/video.js/pull/971))
-* Update seek handle to display the current time ([view](https://github.com/videojs/video.js/pull/902))
+* Updated the seek handle to contain the current time ([view](https://github.com/videojs/video.js/pull/902))
 * Added requirejs and browserify support (UMD) ([view](https://github.com/videojs/video.js/pull/998))
-
---------------------
 
 ## 4.3.0 (2013-11-04)
 * Added Karma for cross-browser unit testing ([view](https://github.com/videojs/video.js/pull/714))
